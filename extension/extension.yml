@@ -1,0 +1,48 @@
+schema_version: "1.0"
+
+extension:
+  id: multi-repo
+  name: "Multi-Repo Workspace"
+  version: "1.0.0"
+  description: "Cross-repo coordination for spec-driven workflows. Reads .specify/repos.yaml and lets /speckit-plan, /speckit-tasks, /speckit-implement, and /speckit-taskstoissues operate against sibling product repos."
+  author: 1devstudio
+  repository: https://github.com/1devstudio/github-spec-kit-multi-repo
+  license: MIT
+
+requires:
+  speckit_version: ">=0.8.0"
+  tools:
+    - name: git
+      required: true
+    - name: yq
+      required: true
+
+provides:
+  commands:
+    - name: speckit.multirepo.config
+      file: commands/speckit.multirepo.config.md
+      description: "Validate and summarize .specify/repos.yaml"
+    - name: speckit.multirepo.branch
+      file: commands/speckit.multirepo.branch.md
+      description: "Create / check out a feature branch in one sibling repo"
+    - name: speckit.multirepo.status
+      file: commands/speckit.multirepo.status.md
+      description: "Report clean/dirty + current branch across every repo in repos.yaml"
+
+  config:
+    - name: "repos.yaml"
+      template: "config-template.yaml"
+      target: ".specify/repos.yaml"
+      description: "Workspace repo registry"
+      required: true
+
+tags:
+  - "multi-repo"
+  - "workspace"
+  - "branching"
+  - "stacked-prs"
+
+config:
+  defaults:
+    base_branch: this
+    branch_prefix: ""

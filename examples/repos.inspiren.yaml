@@ -1,0 +1,46 @@
+schema_version: "1.0"
+
+# Worked example: the multi-repo registry used by the Inspiren engineering org.
+#
+# Copy this to `<root>/.specify/repos.yaml` and adapt it, or start from
+# `extension/config-template.yaml` for a blank slate.
+#
+# Layout assumption: every repo listed here is cloned as a SIBLING of the
+# Spec Kit root repo in the same parent directory, e.g.
+#
+#   workspace/
+#   ├── inspiren-specs/             # the Spec Kit root repo
+#   ├── inspiren-monorepo/
+#   └── inspiren-platform-services/
+#
+# `path` is resolved relative to the Spec Kit root repo ("." for the root repo
+# itself; "../<name>" for siblings).
+
+defaults:
+  base_branch: this
+  branch_prefix: ""
+
+repos:
+  - id: specs
+    path: .
+    role: specs
+    stack: [spec-kit, markdown]
+    branch_prefix: ""
+    base_branch: main
+    github: inspiren-inc/inspiren-specs
+
+  - id: monorepo
+    path: ../inspiren-monorepo
+    role: [backend, frontend, mobile, design-system]
+    stack: [typescript, nestjs, react, expo]
+    branch_prefix: ""
+    base_branch: this
+    github: inspiren-inc/inspiren-monorepo
+
+  - id: platform-services
+    path: ../inspiren-platform-services
+    role: infrastructure
+    stack: [terraform, opentofu, aws]
+    branch_prefix: ""
+    base_branch: this
+    github: inspiren-inc/inspiren-platform-services

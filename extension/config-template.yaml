@@ -1,0 +1,39 @@
+schema_version: "1.0"
+
+# .specify/repos.yaml — workspace repo registry for the multi-repo extension.
+#
+# Layout assumption: every repo listed here is cloned as a SIBLING of the
+# Spec Kit root repo in the same parent directory, e.g.
+#
+#   workspace/
+#   ├── <root>/        # the Spec Kit root repo
+#   ├── <app-repo>/
+#   └── <infra-repo>/
+#
+# `path` is therefore relative to the Spec Kit root repo ("../<name>" for
+# siblings; "." for the root repo itself).
+#
+# See examples/repos.inspiren.yaml in the extension repo for a worked example.
+
+defaults:
+  base_branch: this          # used when a repo entry omits base_branch
+  branch_prefix: ""          # used when a repo entry omits branch_prefix
+
+repos:
+  # The Spec Kit root repo itself. Keep this entry; adjust github as needed.
+  - id: specs
+    path: .
+    role: specs
+    stack: [spec-kit, markdown]
+    branch_prefix: ""
+    base_branch: main
+    github: <owner>/<root-repo>
+
+  # A sibling product repo. Duplicate this block per repo you want coordinated.
+  - id: <repo-id>
+    path: ../<sibling-repo>
+    role: [backend, frontend]      # string or array; advisory metadata
+    stack: [typescript]            # string or array; advisory metadata
+    branch_prefix: ""              # e.g. "feature/" if that repo wants it
+    base_branch: this              # "this" = follow the active spec branch
+    github: <owner>/<sibling-repo>

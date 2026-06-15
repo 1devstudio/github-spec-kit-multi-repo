@@ -1,0 +1,74 @@
+schema_version: "1.0"
+
+# Skill-override manifest for the multi-repo extension.
+#
+# Each block is injected into a core Spec Kit skill at install time, wrapped in
+# `<!-- PRESET: multi-repo:<block_id> START/END -->` markers so it can be updated
+# or removed idempotently.
+#
+# Fields per block:
+#   skill     — the skill directory under <root>/.claude/skills/
+#   block_id  — unique id; also the marker namespace
+#   mode      — "after" : insert the wrapped block on the line after `anchor`
+#   anchor    — a literal substring of a stock Spec Kit skill line used to locate
+#               the insertion point (fixed-string match, first hit)
+#   fragment  — path (relative to this manifest) to the block's content
+#
+# Anchors are taken from stock Spec Kit skill text and are stable across the
+# `>=0.8.0` line. If an anchor is not found, install.sh warns and skips that
+# block rather than corrupting the file.
+
+blocks:
+  - skill: speckit-specify
+    block_id: specify-context
+    mode: after
+    anchor: "6. Write the specification to SPEC_FILE using the template structure, replacing placeholders with concrete details derived from the feature description (arguments) while preserving section order and headings."
+    fragment: fragments/specify-context.md
+
+  - skill: speckit-plan
+    block_id: plan-discover
+    mode: after
+    anchor: "2. **Load context**: Read FEATURE_SPEC and `.specify/memory/constitution.md`. Load IMPL_PLAN template (already copied)."
+    fragment: fragments/plan-discover.md
+
+  - skill: speckit-tasks
+    block_id: tasks-tagging
+    mode: after
+    anchor: "   - Load spec.md and extract user stories with their priorities (P1, P2, P3, etc.)"
+    fragment: fragments/tasks-tagging.md
+
+  - skill: speckit-tasks
+    block_id: tasks-phase1
+    mode: after
+    anchor: "   - Correct feature name from plan.md"
+    fragment: fragments/tasks-phase1.md
+
+  - skill: speckit-tasks
+    block_id: tasks-repolabel
+    mode: after
+    anchor: "   - Polish phase: NO story label"
+    fragment: fragments/tasks-repolabel.md
+
+  - skill: speckit-tasks
+    block_id: tasks-examples
+    mode: after
+    anchor: "- ✅ CORRECT: `- [ ] T014 [US1] Implement UserService in src/services/user_service.py`"
+    fragment: fragments/tasks-examples.md
+
+  - skill: speckit-implement
+    block_id: implement-resolve
+    mode: after
+    anchor: "   - **Task details**: ID, description, file paths, parallel markers [P]"
+    fragment: fragments/implement-resolve.md
+
+  - skill: speckit-implement
+    block_id: implement-exec
+    mode: after
+    anchor: "   - **Validation checkpoints**: Verify each phase completion before proceeding"
+    fragment: fragments/implement-exec.md
+
+  - skill: speckit-taskstoissues
+    block_id: taskstoissues-routing
+    mode: after
+    anchor: "1. For each task in the list, use the GitHub MCP server to create a new issue in the repository that is representative of the Git remote."
+    fragment: fragments/taskstoissues-routing.md
