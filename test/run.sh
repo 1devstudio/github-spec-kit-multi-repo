@@ -21,8 +21,26 @@ pass() { printf 'ok: %s\n' "$*"; }
 command -v yq  >/dev/null 2>&1 || fail "yq is required"
 command -v git >/dev/null 2>&1 || fail "git is required"
 
+MANIFEST="$REPO_DIR/skill-overrides/manifest.yaml"
+
+# --- 0. Anchors must exist in the stock-shaped fixtures --------------------
+# The fixtures are the pinned snapshot of stock Spec Kit skills. If a manifest
+# anchor is missing here, install.sh silently skips that block — fail loudly
+# instead. Refresh fixtures from `specify init` output when bumping Spec Kit.
+acount="$(yq '.blocks | length' "$MANIFEST")"
+k=0
+while [ "$k" -lt "$acount" ]; do
+    askill="$(yq -r ".blocks[$k].skill" "$MANIFEST")"
+    aanchor="$(yq -r ".blocks[$k].anchor" "$MANIFEST")"
+    k=$((k + 1))
+    grep -qF -- "$aanchor" "$FIXTURES/skills/$askill/SKILL.md" \
+        || fail "manifest anchor for $askill not found in fixtures: $aanchor"
+done
+pass "all manifest anchors present in the stock-shaped fixtures"
+
 TMP="$(mktemp -d)"
-trap 'rm -rf "$TMP"' EXIT
+BAK="$(mktemp -d)"   # backups/snapshots for restoration + idempotency checks
+trap 'rm -rf "$TMP" "$BAK"' EXIT
 
 # --- Build a stock-shaped Spec Kit project ---------------------------------
 mkdir -p "$TMP/.specify" "$TMP/.claude/skills"
@@ -30,7 +48,7 @@ cp -R "$FIXTURES/skills/." "$TMP/.claude/skills/"
 ( cd "$TMP" && git init -q && git add -A && git -c user.email=t@t -c user.name=t commit -qm init )
 
 # Pristine copy of the skills for the restoration check.
-ORIG="$TMP-orig"
+ORIG="$BAK/orig"
 cp -R "$TMP/.claude/skills" "$ORIG"
 
 SKILLS=(speckit-specify speckit-plan speckit-tasks speckit-implement speckit-taskstoissues)
@@ -44,11 +62,11 @@ pass "payload copied"
 pass "registered in extensions.yml"
 
 # Every block id from the manifest must appear (as a START marker) in its skill.
-mcount="$(yq '.blocks | length' "$REPO_DIR/skill-overrides/manifest.yaml")"
+mcount="$(yq '.blocks | length' "$MANIFEST")"
 j=0
 while [ "$j" -lt "$mcount" ]; do
-    skill="$(yq -r ".blocks[$j].skill" "$REPO_DIR/skill-overrides/manifest.yaml")"
-    bid="$(yq -r ".blocks[$j].block_id" "$REPO_DIR/skill-overrides/manifest.yaml")"
+    skill="$(yq -r ".blocks[$j].skill" "$MANIFEST")"
+    bid="$(yq -r ".blocks[$j].block_id" "$MANIFEST")"
     j=$((j + 1))
     grep -qF "<!-- PRESET: multi-repo:$bid START -->" "$TMP/.claude/skills/$skill/SKILL.md" \
         || fail "block $bid not injected into $skill"
@@ -56,12 +74,13 @@ done
 pass "all $mcount blocks injected"
 
 # --- 2. Idempotency --------------------------------------------------------
-SNAP1="$TMP-snap1"
+SNAP1="$BAK/snap1"
+EXT1="$BAK/ext1.yml"
 cp -R "$TMP/.claude/skills" "$SNAP1"
-cp "$TMP/.specify/extensions.yml" "$TMP-ext1.yml"
+cp "$TMP/.specify/extensions.yml" "$EXT1"
 "$REPO_DIR/install.sh" --specify-root "$TMP" >/dev/null
 diff -r "$SNAP1" "$TMP/.claude/skills" >/dev/null || fail "second install changed the skills (not idempotent)"
-diff "$TMP-ext1.yml" "$TMP/.specify/extensions.yml" >/dev/null || fail "second install changed extensions.yml"
+diff "$EXT1" "$TMP/.specify/extensions.yml" >/dev/null || fail "second install changed extensions.yml"
 pass "re-install is a no-op (idempotent)"
 
 # --- 3. Uninstall restores stock ------------------------------------------
@@ -82,5 +101,5 @@ pass "payload left in place without --purge"
 [ ! -d "$TMP/.specify/extensions/multi-repo" ] || fail "--purge did not delete payload"
 pass "--purge deleted payload"
 
-rm -rf "$ORIG" "$SNAP1" "$TMP-ext1.yml"
+# Temp dirs are cleaned by the EXIT trap.
 printf '\nALL TESTS PASSED\n'

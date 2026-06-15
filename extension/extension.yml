@@ -41,8 +41,3 @@ tags:
   - "workspace"
   - "branching"
   - "stacked-prs"
-
-config:
-  defaults:
-    base_branch: main
-    branch_prefix: ""

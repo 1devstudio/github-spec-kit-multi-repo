@@ -17,6 +17,11 @@ schema_version: "1.0"
 # Anchors are taken from stock Spec Kit skill text and are stable across the
 # `>=0.8.0` line. If an anchor is not found, install.sh warns and skips that
 # block rather than corrupting the file.
+#
+# test/run.sh asserts every anchor below still exists in test/fixtures/skills/
+# (the pinned stock-shaped snapshot), so CI fails loudly on drift. When bumping
+# the supported Spec Kit version, refresh those fixtures from `specify init`
+# output and update any anchor that changed.
 
 blocks:
   - skill: speckit-specify

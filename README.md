@@ -100,7 +100,8 @@ repos:
 - `id` is the stable handle that Spec Kit tasks reference via `[repo:<id>]`.
 - `path` MUST be relative to the Spec Kit root repo (or absolute). It is resolved
   at runtime, so a repo that isn't cloned yet is reported as `missing` by
-  `/speckit-multirepo-status` rather than treated as an error.
+  `/speckit-multirepo-status` (which still exits non-zero so automation can detect
+  it) instead of aborting the whole run.
 - `role` and `stack` are advisory metadata used by `/speckit-plan` to decide
   which repos a feature touches.
 - `branch_prefix` enables conventions like `feature/` on repos that want them.
