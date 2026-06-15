@@ -48,7 +48,9 @@ done < <(multirepo_repo_ids)
 if $EMIT_JSON; then
     printf '['
     sep=""
-    for r in "${results[@]}"; do
+    # ${arr[@]+...} guards against "unbound variable" on an empty array under
+    # `set -u` in bash < 4.4 (macOS still ships bash 3.2).
+    for r in ${results[@]+"${results[@]}"}; do
         printf '%s%s' "$sep" "$r"
         sep=','
     done
@@ -56,7 +58,7 @@ if $EMIT_JSON; then
 else
     printf '%-22s  %-12s  %s\n' "REPO" "STATE" "BRANCH @ PATH"
     printf '%-22s  %-12s  %s\n' "----" "-----" "-------------"
-    for r in "${results[@]}"; do
+    for r in ${results[@]+"${results[@]}"}; do
         repo_id=$(printf '%s' "$r" | sed -E 's/.*"repo_id":"([^"]*)".*/\1/')
         status=$(printf '%s' "$r" | sed -E 's/.*"status":"([^"]*)".*/\1/')
         branch=$(printf '%s' "$r" | sed -E 's/.*"branch":(null|"([^"]*)").*/\2/')

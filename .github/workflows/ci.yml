@@ -14,7 +14,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y shellcheck
       - name: Lint shell scripts
         run: |
-          shellcheck -x --source-path=SCRIPTDIR install.sh uninstall.sh test/run.sh
+          shellcheck -x --source-path=SCRIPTDIR install.sh uninstall.sh test/run.sh test/scripts.sh
           shellcheck -x --source-path=SCRIPTDIR extension/scripts/bash/*.sh
 
   integration:
@@ -29,3 +29,5 @@ jobs:
           yq --version
       - name: Install / idempotency / uninstall test
         run: ./test/run.sh
+      - name: Runtime helper script tests
+        run: ./test/scripts.sh
