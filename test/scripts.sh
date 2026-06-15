@@ -136,10 +136,23 @@ echo more >> "$WS/app/tracked.txt"     # now dirty vs HEAD
 expect_rc 6 "$BASH_DIR/create-repo-branch.sh" --repo app --name F-1
 git -C "$WS/app" checkout -q -- tracked.txt   # clean up for later
 
+# an untracked file also counts as dirty (matches repo-status's definition).
+touch "$WS/app/untracked.txt"
+expect_rc 6 "$BASH_DIR/create-repo-branch.sh" --repo app --name F-1
+rm -f "$WS/app/untracked.txt"
+
 # unknown id and missing args fail with documented codes.
 expect_rc 3 "$BASH_DIR/create-repo-branch.sh" --repo nope --name X
 expect_rc 1 "$BASH_DIR/create-repo-branch.sh" --repo app
 pass "create-repo-branch.sh: create/idempotent/existing/prefix/override/dirty/errors"
+
+# --- 3b. missing repos.yaml -> exit 2 --------------------------------------
+NWS="$TMP/noconfig"
+mkrepo "$NWS"
+mkdir -p "$NWS/.specify"   # directory exists, but no repos.yaml
+rc=0; ( cd "$NWS" && "$BASH_DIR/create-repo-branch.sh" --repo x --name y ) >/dev/null 2>&1 || rc=$?
+eq "missing-config rc" "$rc" "2"
+pass "create-repo-branch.sh exits 2 when repos.yaml is absent"
 
 # --- 4. repo-status.sh -----------------------------------------------------
 # (exits non-zero because ghost is missing, hence the `|| true` on captures)

@@ -7,13 +7,15 @@
 # Usage: create-repo-branch.sh --repo <id> --name <branch> [--base <branch>] [--json]
 #
 # Exit codes:
-#   0  success (already on branch, or switched/created)
-#   1  bad arguments
-#   2  repos.yaml not loadable
-#   3  repo id unknown
-#   4  repo path missing on disk
-#   5  repo path is not a git working tree
-#   6  uncommitted changes block the checkout
+#   0    success (already on branch, or switched/created)
+#   1    bad arguments
+#   2    repos.yaml not found
+#   3    repo id unknown
+#   4    repo path missing on disk
+#   5    repo path is not a git working tree
+#   6    uncommitted changes block the checkout
+#   7    base branch not found locally or on origin
+#   127  yq not installed
 
 set -euo pipefail
 
@@ -71,8 +73,10 @@ fi
 
 CURRENT_BRANCH=$(git -C "$REPO_PATH" rev-parse --abbrev-ref HEAD)
 
-# Refuse to switch away from a dirty tree to avoid losing work.
-if [ "$CURRENT_BRANCH" != "$FULL_BRANCH" ] && ! git -C "$REPO_PATH" diff --quiet HEAD --; then
+# Refuse to switch away from a dirty tree to avoid losing work. "Dirty" matches
+# /speckit-multirepo-status exactly: any tracked change OR untracked file
+# (git status --porcelain), so the two commands never disagree about a repo.
+if [ "$CURRENT_BRANCH" != "$FULL_BRANCH" ] && [ -n "$(git -C "$REPO_PATH" status --porcelain)" ]; then
     echo "ERROR: $REPO_PATH has uncommitted changes; refusing to switch from $CURRENT_BRANCH to $FULL_BRANCH" >&2
     exit 6
 fi
@@ -102,8 +106,15 @@ else
 fi
 
 if $EMIT_JSON; then
-    printf '{"repo_id":"%s","repo_path":"%s","branch":"%s","base":"%s","action":"%s"}\n' \
-        "$REPO_ID" "$REPO_PATH" "$FULL_BRANCH" "$BASE_BRANCH" "$ACTION"
+    # Build JSON via yq so values with quotes/backslashes can't produce invalid output.
+    repo_id="$REPO_ID" repo_path="$REPO_PATH" branch="$FULL_BRANCH" base="$BASE_BRANCH" action="$ACTION" \
+        yq -n -o=json -I=0 '{
+            "repo_id": strenv(repo_id),
+            "repo_path": strenv(repo_path),
+            "branch": strenv(branch),
+            "base": strenv(base),
+            "action": strenv(action)
+        }'
 else
     printf '[%s] %s — %s (base: %s) at %s\n' \
         "$REPO_ID" "$ACTION" "$FULL_BRANCH" "$BASE_BRANCH" "$REPO_PATH"

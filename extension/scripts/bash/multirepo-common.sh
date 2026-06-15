@@ -44,7 +44,8 @@ multirepo_repo_path() {
     local root cfg rel
     root="$(multirepo_repo_root)" || return 1
     cfg="$(multirepo_config_path)" || return 1
-    rel=$(yq -r ".repos[] | select(.id == \"$repo_id\") | .path" "$cfg")
+    [ -f "$cfg" ] || { echo "ERROR: .specify/repos.yaml not found at $cfg" >&2; return 2; }
+    rel=$(repo_id="$repo_id" yq -r '.repos[] | select(.id == strenv(repo_id)) | .path' "$cfg")
     if [ -z "$rel" ] || [ "$rel" = "null" ]; then
         echo "ERROR: repo id '$repo_id' not found in $cfg" >&2
         return 3
@@ -67,11 +68,11 @@ multirepo_base_branch() {
     local cfg
     cfg="$(multirepo_config_path)" || return 1
     local value
-    value=$(yq -r "
-        (.repos[] | select(.id == \"$repo_id\") | .base_branch) //
+    value=$(repo_id="$repo_id" yq -r '
+        (.repos[] | select(.id == strenv(repo_id)) | .base_branch) //
         .defaults.base_branch //
-        \"main\"
-    " "$cfg")
+        "main"
+    ' "$cfg")
     printf '%s\n' "$value"
 }
 
@@ -82,11 +83,11 @@ multirepo_branch_prefix() {
     local cfg
     cfg="$(multirepo_config_path)" || return 1
     local value
-    value=$(yq -r "
-        (.repos[] | select(.id == \"$repo_id\") | .branch_prefix) //
+    value=$(repo_id="$repo_id" yq -r '
+        (.repos[] | select(.id == strenv(repo_id)) | .branch_prefix) //
         .defaults.branch_prefix //
-        \"\"
-    " "$cfg")
+        ""
+    ' "$cfg")
     [ "$value" = "null" ] && value=""
     printf '%s\n' "$value"
 }
@@ -98,7 +99,7 @@ multirepo_github_slug() {
     local cfg
     cfg="$(multirepo_config_path)" || return 1
     local value
-    value=$(yq -r "(.repos[] | select(.id == \"$repo_id\") | .github) // \"\"" "$cfg")
+    value=$(repo_id="$repo_id" yq -r '(.repos[] | select(.id == strenv(repo_id)) | .github) // ""' "$cfg")
     [ "$value" = "null" ] && value=""
     printf '%s\n' "$value"
 }

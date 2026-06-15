@@ -17,6 +17,9 @@ case "${1:-}" in
     *) echo "Usage: $0 [--json]" >&2; exit 1 ;;
 esac
 
+# Each row is TAB-separated: repo_id <TAB> status <TAB> branch <TAB> path.
+# An empty branch/path field renders as JSON null. Keeping the raw fields here
+# (instead of pre-rendered JSON) avoids parsing JSON back out for the table view.
 results=()
 overall_status=0
 
@@ -24,13 +27,13 @@ while IFS= read -r repo_id; do
     [ -z "$repo_id" ] && continue
 
     if ! repo_path="$(multirepo_repo_path "$repo_id" 2>/dev/null)"; then
-        results+=("$(printf '{"repo_id":"%s","status":"missing","branch":null,"path":null}' "$repo_id")")
+        results+=("$repo_id"$'\t'"missing"$'\t'$'\t')
         overall_status=1
         continue
     fi
 
     if ! git -C "$repo_path" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        results+=("$(printf '{"repo_id":"%s","status":"not-a-repo","branch":null,"path":"%s"}' "$repo_id" "$repo_path")")
+        results+=("$repo_id"$'\t'"not-a-repo"$'\t'$'\t'"$repo_path")
         overall_status=1
         continue
     fi
@@ -42,16 +45,25 @@ while IFS= read -r repo_id; do
         state=dirty
     fi
 
-    results+=("$(printf '{"repo_id":"%s","status":"%s","branch":"%s","path":"%s"}' "$repo_id" "$state" "$branch" "$repo_path")")
+    results+=("$repo_id"$'\t'"$state"$'\t'"$branch"$'\t'"$repo_path")
 done < <(multirepo_repo_ids)
 
+# ${arr[@]+...} guards against "unbound variable" on an empty array under
+# `set -u` in bash < 4.4 (macOS still ships bash 3.2).
 if $EMIT_JSON; then
     printf '['
     sep=""
-    # ${arr[@]+...} guards against "unbound variable" on an empty array under
-    # `set -u` in bash < 4.4 (macOS still ships bash 3.2).
     for r in ${results[@]+"${results[@]}"}; do
-        printf '%s%s' "$sep" "$r"
+        IFS=$'\t' read -r id st br pth <<<"$r"
+        # Build JSON via yq so values can't produce malformed output; empty
+        # branch/path become null.
+        obj="$(id="$id" st="$st" br="$br" pth="$pth" yq -n -o=json -I=0 '{
+            "repo_id": strenv(id),
+            "status": strenv(st),
+            "branch": (strenv(br) | select(. != "")) // null,
+            "path": (strenv(pth) | select(. != "")) // null
+        }')"
+        printf '%s%s' "$sep" "$obj"
         sep=','
     done
     printf ']\n'
@@ -59,11 +71,8 @@ else
     printf '%-22s  %-12s  %s\n' "REPO" "STATE" "BRANCH @ PATH"
     printf '%-22s  %-12s  %s\n' "----" "-----" "-------------"
     for r in ${results[@]+"${results[@]}"}; do
-        repo_id=$(printf '%s' "$r" | sed -E 's/.*"repo_id":"([^"]*)".*/\1/')
-        status=$(printf '%s' "$r" | sed -E 's/.*"status":"([^"]*)".*/\1/')
-        branch=$(printf '%s' "$r" | sed -E 's/.*"branch":(null|"([^"]*)").*/\2/')
-        path=$(printf '%s' "$r" | sed -E 's/.*"path":(null|"([^"]*)").*/\2/')
-        printf '%-22s  %-12s  %s @ %s\n' "$repo_id" "$status" "${branch:--}" "${path:--}"
+        IFS=$'\t' read -r id st br pth <<<"$r"
+        printf '%-22s  %-12s  %s @ %s\n' "$id" "$st" "${br:--}" "${pth:--}"
     done
 fi
 
