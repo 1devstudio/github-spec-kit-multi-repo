@@ -17,7 +17,7 @@ schema_version: "1.0"
 # itself; "../<name>" for siblings).
 
 defaults:
-  base_branch: this
+  base_branch: main
   branch_prefix: ""
 
 repos:
@@ -34,7 +34,7 @@ repos:
     role: [backend, frontend, mobile, design-system]
     stack: [typescript, nestjs, react, expo]
     branch_prefix: ""
-    base_branch: this
+    base_branch: main
     github: inspiren-inc/inspiren-monorepo
 
   - id: platform-services
@@ -42,5 +42,5 @@ repos:
     role: infrastructure
     stack: [terraform, opentofu, aws]
     branch_prefix: ""
-    base_branch: this
+    base_branch: main
     github: inspiren-inc/inspiren-platform-services

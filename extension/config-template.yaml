@@ -16,7 +16,7 @@ schema_version: "1.0"
 # See examples/repos.inspiren.yaml in the extension repo for a worked example.
 
 defaults:
-  base_branch: this          # used when a repo entry omits base_branch
+  base_branch: main          # used when a repo entry omits base_branch
   branch_prefix: ""          # used when a repo entry omits branch_prefix
 
 repos:
@@ -35,5 +35,5 @@ repos:
     role: [backend, frontend]      # string or array; advisory metadata
     stack: [typescript]            # string or array; advisory metadata
     branch_prefix: ""              # e.g. "feature/" if that repo wants it
-    base_branch: this              # "this" = follow the active spec branch
+    base_branch: main              # branch to fork a new feature branch from
     github: <owner>/<sibling-repo>

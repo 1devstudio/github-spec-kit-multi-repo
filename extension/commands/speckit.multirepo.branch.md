@@ -59,7 +59,7 @@ When a later implementation phase needs a different branch name than the spec
 kit's auto-generated one (e.g. `<TICKET>-phase0-foundation` →
 `<TICKET>-phase1-api`), call this command with the explicit `name` and pass
 `base=<previous phase branch>` so the new branch forks from the stack's tip
-rather than from `this`.
+rather than from the repo's configured `base_branch`.
 
 ## Output
 

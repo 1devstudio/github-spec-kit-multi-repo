@@ -44,5 +44,5 @@ tags:
 
 config:
   defaults:
-    base_branch: this
+    base_branch: main
     branch_prefix: ""
