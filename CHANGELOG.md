@@ -4,6 +4,26 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-06-26
+
+### Changed
+
+- **BREAKING:** Renamed the three provided commands from `speckit.multirepo.*`
+  to `speckit.multi-repo.*` (slash commands `/speckit-multi-repo-{config,branch,status}`).
+  Spec Kit **0.11+** validates that every command name uses the owning
+  extension's id as its namespace, and the extension id is `multi-repo`; the old
+  `multirepo` (no hyphen) names fail `specify extension add` with
+  `Command 'speckit.multirepo.config' must use extension namespace 'multi-repo'`.
+  The new names also work on 0.8–0.10, so the extension remains compatible with
+  `speckit_version >= 0.8.0`.
+
+### Notes
+
+- Internal shell helpers (`multirepo_*` functions, `multirepo-common.sh`) and the
+  `<!-- PRESET: multi-repo:* -->` skill-override markers are unchanged.
+- Skill-override anchors were re-verified against Spec Kit 0.11.8 stock skills and
+  all still match, so injection behavior is unchanged.
+
 ## [1.0.0] - 2026-06-15
 
 ### Added

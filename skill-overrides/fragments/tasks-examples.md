@@ -1,3 +1,3 @@
-- ✅ CORRECT: `- [ ] T002 [P] [repo:app] Create feature branch via /speckit-multirepo-branch repo=app name=PROJ-123-foundation`
+- ✅ CORRECT: `- [ ] T002 [P] [repo:app] Create feature branch via /speckit-multi-repo-branch repo=app name=PROJ-123-foundation`
 - ✅ CORRECT: `- [ ] T020 [US1] [repo:app] Add /feature controller in src/feature/controller.ts`
 - ✅ CORRECT: `- [ ] T040 [P] [US2] [repo:infra] Add queue module wiring in modules/queue/main.tf`

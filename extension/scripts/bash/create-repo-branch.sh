@@ -74,7 +74,7 @@ fi
 CURRENT_BRANCH=$(git -C "$REPO_PATH" rev-parse --abbrev-ref HEAD)
 
 # Refuse to switch away from a dirty tree to avoid losing work. "Dirty" matches
-# /speckit-multirepo-status exactly: any tracked change OR untracked file
+# /speckit-multi-repo-status exactly: any tracked change OR untracked file
 # (git status --porcelain), so the two commands never disagree about a repo.
 if [ "$CURRENT_BRANCH" != "$FULL_BRANCH" ] && [ -n "$(git -C "$REPO_PATH" status --porcelain)" ]; then
     echo "ERROR: $REPO_PATH has uncommitted changes; refusing to switch from $CURRENT_BRANCH to $FULL_BRANCH" >&2

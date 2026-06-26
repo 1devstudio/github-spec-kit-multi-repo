@@ -17,4 +17,4 @@
     | infra | ../infra | infrastructure | terraform, opentofu |
     ```
 
-    Branches are NOT created in sibling repos at spec time — only the Spec Kit root repo branch is created here (by the `before_specify` git hook). Sibling-repo branches are created per-task during `/speckit-implement` via `/speckit-multirepo-branch`.
+    Branches are NOT created in sibling repos at spec time — only the Spec Kit root repo branch is created here (by the `before_specify` git hook). Sibling-repo branches are created per-task during `/speckit-implement` via `/speckit-multi-repo-branch`.
