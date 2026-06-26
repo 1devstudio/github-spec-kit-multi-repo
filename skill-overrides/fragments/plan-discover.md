@@ -17,5 +17,5 @@
      | infra | ../infra | infrastructure | terraform, opentofu | New queue + IAM role for the worker | (empty) |
      ```
 
-   - Branches are NOT created here. They are created per-task by `/speckit-multirepo-branch` during `/speckit-implement`.
+   - Branches are NOT created here. They are created per-task by `/speckit-multi-repo-branch` during `/speckit-implement`.
    - If no sibling repos are affected (the spec is purely about the Spec Kit root repo), omit the section.

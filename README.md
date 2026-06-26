@@ -32,7 +32,7 @@ workspace/
 ├── extension/                # the installable Spec Kit extension payload
 │   ├── extension.yml         # extension manifest + tool requirements
 │   ├── config-template.yaml  # template that .specify/repos.yaml ships with
-│   ├── commands/             # /speckit-multirepo-{config,branch,status}
+│   ├── commands/             # /speckit-multi-repo-{config,branch,status}
 │   └── scripts/bash/         # yq-backed helper scripts
 ├── skill-overrides/          # PRESET fragments injected into the core skills
 │   ├── manifest.yaml         # maps each block → target skill + anchor + fragment
@@ -92,7 +92,7 @@ repos:
     path: ../app             # relative to the Spec Kit root repo
     role: [backend, frontend]              # string or array
     stack: [typescript, nestjs, react]     # string or array
-    branch_prefix: ""        # prepended to whatever branch /speckit-multirepo-branch is asked for
+    branch_prefix: ""        # prepended to whatever branch /speckit-multi-repo-branch is asked for
     base_branch: main       # branch to fork from when creating a new feature branch
     github: <owner>/app      # used by /speckit-taskstoissues for routing
 ```
@@ -100,7 +100,7 @@ repos:
 - `id` is the stable handle that Spec Kit tasks reference via `[repo:<id>]`.
 - `path` MUST be relative to the Spec Kit root repo (or absolute). It is resolved
   at runtime, so a repo that isn't cloned yet is reported as `missing` by
-  `/speckit-multirepo-status` (which still exits non-zero so automation can detect
+  `/speckit-multi-repo-status` (which still exits non-zero so automation can detect
   it) instead of aborting the whole run.
 - `role` and `stack` are advisory metadata used by `/speckit-plan` to decide
   which repos a feature touches.
@@ -114,9 +114,9 @@ repos:
 
 | Command | What it does |
 |---|---|
-| `/speckit-multirepo-config` | Parse and display `repos.yaml`; flag duplicate ids, unreachable paths, missing `github` slugs. |
-| `/speckit-multirepo-branch` | Idempotently create / check out one branch in one repo. Called per-task by `/speckit-implement`. |
-| `/speckit-multirepo-status` | Show clean/dirty + current branch for every repo in `repos.yaml`. |
+| `/speckit-multi-repo-config` | Parse and display `repos.yaml`; flag duplicate ids, unreachable paths, missing `github` slugs. |
+| `/speckit-multi-repo-branch` | Idempotently create / check out one branch in one repo. Called per-task by `/speckit-implement`. |
+| `/speckit-multi-repo-status` | Show clean/dirty + current branch for every repo in `repos.yaml`. |
 
 ## How the workflow uses the extension
 
@@ -125,7 +125,7 @@ repos:
 | `/speckit-specify` | Spec gains a "Multi-Repo Context" block listing the registry. |
 | `/speckit-plan` | Reads `repos.yaml`; adds an **Affected Repositories** table to `plan.md`. |
 | `/speckit-tasks` | Tags every sibling-repo task with `[repo:<id>]`. Emits a Phase-1 branch-setup task per affected repo. |
-| `/speckit-implement` | Resolves `[repo:<id>]` → path; runs each task's commands inside that repo. Calls `/speckit-multirepo-branch` for setup tasks. |
+| `/speckit-implement` | Resolves `[repo:<id>]` → path; runs each task's commands inside that repo. Calls `/speckit-multi-repo-branch` for setup tasks. |
 | `/speckit-taskstoissues` | Routes issues to `<github>` per `repos.yaml`. |
 
 ## Stacked-PR support
@@ -133,7 +133,7 @@ repos:
 Sibling-repo branches are created **at implementation time**, not at spec time,
 so each implementation phase can use a different branch name. To fork a later
 phase from a previous phase's tip, pass `base=<previous branch>` to
-`/speckit-multirepo-branch`.
+`/speckit-multi-repo-branch`.
 
 ## Uninstall
 
